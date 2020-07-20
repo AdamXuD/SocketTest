@@ -2,6 +2,7 @@
 #include <cstring>
 #include <string>
 #include <map>
+#include <list>
 #include "include/json/json.h"
 
 #define PACKET_HEADER "PACKET_HEADER"
@@ -80,12 +81,41 @@ struct Msg //信息类
         Json::parseFromStream(rbuilder, iss, &root, &err);
         for(int i = 0; i < root.size(); i++)
         {
-            cout << root[i][column[0]].asString() << root[i][column[1]].asString() << endl;
             pMap[root[i][column[0]].asString()] = root[i][column[1]].asString();
         }
     }
 
-    
+    void historyToContent(list<History *> &pList)
+    {
+        Json::Value root;
+        list<History *>::iterator it = pList.begin();
+        for(int i = 0; i < pList.size(); i++, it++)
+        {
+            root[i]["fromUser"] = Json::Value((*it)->fromUser);
+            root[i]["target"] = Json::Value((*it)->toUser);
+            root[i]["content"] = Json::Value((*it)->content);
+            root[i]["timeStamp"] = Json::Value((*it)->timeStamp);
+        }
+        this->content = root.toStyledString();
+    }
+
+    void contentToHistory(list<History *> &pList)
+    {
+        istringstream iss(this->content);
+        Json::CharReaderBuilder rbuilder;
+        string err;
+        Json::Value root;
+        Json::parseFromStream(rbuilder, iss, &root, &err);
+        for(int i = 0; i < root.size(); i++)
+        {
+            History *tmp = new History;
+            tmp->fromUser = root[i]["fromUser"].asString();
+            tmp->toUser = root[i]["target"].asString();
+            tmp->content = root[i]["content"].asString();
+            tmp->timeStamp = root[i]["timeStamp"].asString();
+            pList.push_back(tmp);
+        }
+    }
 };
 
 string packUp(string jsonString)
@@ -107,6 +137,10 @@ string unPack(string packet)
     return Msg().serializer();
 }
 
+struct History : Msg
+{
+    string timeStamp;
+};
 
 int main()
 {
@@ -128,24 +162,27 @@ int main()
     // root["test"][2] = Json::Value("bbb");
     // cout << root.toStyledString() << endl;
 
-    map<string, string> test;
-    test["aaa"] = "bbb";
-    test["ccc"] = "ddd";
+    // map<string, string> test;
+    // test["aaa"] = "bbb";
+    // test["ccc"] = "ddd";
 
-    Msg msg;
-    string column[2] = {"111", "222"};
-    msg.mapToContent(column, test);
-    cout << msg.content << endl;
+    // Msg msg;
+    // string column[2] = {"111", "222"};
+    // msg.mapToContent(column, test);
+    // cout << msg.content << endl;
 
-    Msg msg2;
-    msg2.parser(unPack(packUp(msg.serializer())));
+    // Msg msg2;
+    // msg2.parser(unPack(packUp(msg.serializer())));
 
-    map<string, string> test2;
-    msg2.contentToMap(column, test2);
-    map<string, string>::iterator it = test2.begin();
-    for(int i = 0; i < test2.size(); i++, it++)
-    {
-        cout << it->first << " " << it->second << endl;
-    }
+    // map<string, string> test2;
+    // msg2.contentToMap(column, test2);
+    // map<string, string>::iterator it = test2.begin();
+    // for(int i = 0; i < test2.size(); i++, it++)
+    // {
+    //     cout << it->first << " " << it->second << endl;
+    // }
+    list<History *> history;
+    
+    
     return 0;
 }
