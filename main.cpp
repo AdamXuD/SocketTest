@@ -1,6 +1,13 @@
 #include <iostream>
 #include <cstring>
+#include <string>
 #include "include/json/json.h"
+
+#define PACKET_HEADER "PACKET_HEADER"
+#define PACKET_END "PACKET_END"
+#define PACKET_HEADER_SIZE sizeof(PACKET_HEADER)
+#define PACKET_END_SIZE sizeof(PACKET_END)
+#define SIZE_LENGTH 8
 
 using namespace std;
 
@@ -19,7 +26,7 @@ struct Msg //信息类
         this->content = content;
     }
 
-    Msg & operator=(const Msg &msg)
+    const Msg & operator=(const Msg &msg)
     {
         this->type = msg.type;
         this->fromUser = msg.fromUser;
@@ -52,10 +59,23 @@ struct Msg //信息类
     }
 };
 
-void packUp()
+string packUp(string jsonString)
 {
-    string packet;
-    
+    char Csz[9];
+    sprintf(Csz, "%08d", (int)jsonString.size());
+    return PACKET_HEADER + string(Csz) + jsonString + PACKET_END; 
+}
+
+string unPack(string packet)
+{
+    if(packet.find(PACKET_HEADER) != string::npos)
+    {
+        if(packet.find(PACKET_END) != string::npos)
+        {
+            return packet.substr(PACKET_HEADER_SIZE + SIZE_LENGTH - 1, atoi(packet.substr(PACKET_HEADER_SIZE - 1, SIZE_LENGTH).c_str()));
+        }
+    }
+    return Msg().serializer();
 }
 
 
@@ -63,8 +83,12 @@ int main()
 {
     Msg test1(2, "儿子", "爸爸", "我是你爸爸！");
     Msg test2;
-    test2.parser(test1.serializer());
-    Msg test3 = test2;
-    cout << test3.content << endl;
+    test2.parser(unPack(packUp(test1.serializer())));
+
+    cout << test2.type << endl;
+    cout << test2.fromUser << endl;
+    cout << test2.toUser << endl;
+    cout << test2.content << endl;
+
     return 0;
 }
