@@ -1,146 +1,6 @@
-#include <iostream>
-#include <cstring>
-#include <string>
-#include <map>
-#include <list>
-#include "include/json/json.h"
-
-#define PACKET_HEADER "PACKET_HEADER"
-#define PACKET_END "PACKET_END"
-#define PACKET_HEADER_SIZE sizeof(PACKET_HEADER)
-#define PACKET_END_SIZE sizeof(PACKET_END)
-#define SIZE_LENGTH 8
+#include "msg.h"
 
 using namespace std;
-
-struct Msg //信息类
-{
-    int type;           //消息类型
-    string toUser;    //目标账号
-    string fromUser;  //用户来源
-    string content; //内容
-
-    Msg(int type = 0, string toUser = "", string fromUser = "", string content = "")
-    {
-        this->type = type;
-        this->toUser = toUser;
-        this->fromUser = fromUser;
-        this->content = content;
-    }
-
-    const Msg & operator=(const Msg &msg)
-    {
-        this->type = msg.type;
-        this->fromUser = msg.fromUser;
-        this->toUser = msg.toUser;
-        this->content = msg.content;
-        return *this;
-    }
-
-    string serializer() //利用jsoncpp库来实现序列化与反序列化 以及实现不定长字符串的发送
-    {
-        Json::Value root;
-        root["type"] = Json::Value(this->type);
-        root["toUser"] = Json::Value(this->toUser);
-        root["fromUser"] = Json::Value(this->fromUser);
-        root["content"] = Json::Value(this->content);
-        return root.toStyledString();
-    }
-
-    void parser(string jsonString)
-    {
-        Json::CharReaderBuilder rbuilder;
-        istringstream iss(jsonString);
-        string err;
-        Json::Value root;
-        Json::parseFromStream(rbuilder, iss, &root, &err);
-        this->type = root["type"].asInt();
-        this->toUser = root["toUser"].asString();
-        this->fromUser = root["fromUser"].asString();
-        this->content = root["content"].asString();
-    }
-
-    void mapToContent(string column[2], map<string, string> &pMap)
-    {
-        Json::Value root;
-        map<string, string>::iterator it = pMap.begin();
-        for(int i = 0; i < pMap.size(); i++, it++)
-        {
-            root[i][column[0]] = Json::Value(it->first);
-            root[i][column[1]] = Json::Value(it->second);
-        }
-        this->content = root.toStyledString();
-    }
-
-    void contentToMap(string column[2], map<string,  string> &pMap)
-    {
-        istringstream iss(this->content);
-        Json::CharReaderBuilder rbuilder;
-        string err;
-        Json::Value root;
-        Json::parseFromStream(rbuilder, iss, &root, &err);
-        for(int i = 0; i < root.size(); i++)
-        {
-            pMap[root[i][column[0]].asString()] = root[i][column[1]].asString();
-        }
-    }
-
-    void historyToContent(list<History *> &pList)
-    {
-        Json::Value root;
-        list<History *>::iterator it = pList.begin();
-        for(int i = 0; i < pList.size(); i++, it++)
-        {
-            root[i]["fromUser"] = Json::Value((*it)->fromUser);
-            root[i]["target"] = Json::Value((*it)->toUser);
-            root[i]["content"] = Json::Value((*it)->content);
-            root[i]["timeStamp"] = Json::Value((*it)->timeStamp);
-        }
-        this->content = root.toStyledString();
-    }
-
-    void contentToHistory(list<History *> &pList)
-    {
-        istringstream iss(this->content);
-        Json::CharReaderBuilder rbuilder;
-        string err;
-        Json::Value root;
-        Json::parseFromStream(rbuilder, iss, &root, &err);
-        for(int i = 0; i < root.size(); i++)
-        {
-            History *tmp = new History;
-            tmp->fromUser = root[i]["fromUser"].asString();
-            tmp->toUser = root[i]["target"].asString();
-            tmp->content = root[i]["content"].asString();
-            tmp->timeStamp = root[i]["timeStamp"].asString();
-            pList.push_back(tmp);
-        }
-    }
-};
-
-string packUp(string jsonString)
-{
-    char Csz[9];
-    sprintf(Csz, "%08d", (int)jsonString.size());
-    return PACKET_HEADER + string(Csz) + jsonString + PACKET_END; 
-}
-
-string unPack(string packet)
-{
-    if(packet.find(PACKET_HEADER) != string::npos)
-    {
-        if(packet.find(PACKET_END) != string::npos)
-        {
-            return packet.substr(PACKET_HEADER_SIZE + SIZE_LENGTH - 1, atoi(packet.substr(PACKET_HEADER_SIZE - 1, SIZE_LENGTH).c_str()));
-        }
-    }
-    return Msg().serializer();
-}
-
-struct History : Msg
-{
-    string timeStamp;
-};
 
 int main()
 {
@@ -182,7 +42,31 @@ int main()
     //     cout << it->first << " " << it->second << endl;
     // }
     list<History *> history;
-    
-    
+    History *history1 = new History;
+    history1->fromUser = "fromUser1";
+    history1->toUser = "toUser1";
+    history1->content = "content1";
+    history1->timeStamp = "timeStamp1";
+    History *history2 = new History;
+    history2->fromUser = "fromUser2";
+    history2->toUser = "toUser2";
+    history2->content = "content2";
+    history2->timeStamp = "timeStamp2";
+    history.push_back(history1);
+    history.push_back(history2);
+    Msg test;
+    test.historyToContent(history);
+    cout << test.content << endl;
+    list<History *> history_2;
+    test.contentToHistory(history_2);
+    list<History *>::iterator it = history_2.begin();
+    for (int i = 0; i < history_2.size(); i++, it++)
+    {
+        cout << (*it)->fromUser << endl;
+        cout << (*it)->toUser << endl;
+        cout << (*it)->content << endl;
+        cout << (*it)->timeStamp << endl;
+    }
+
     return 0;
 }
