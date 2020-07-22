@@ -20,19 +20,19 @@ struct BaseMsg //信息类
     std::string fromUser; //用户来源
     std::string content;  //内容
 
-    BaseMsg(int type = 0, std::string toUser = "", std::string fromUser = "", std::string content = "");
+    BaseMsg(int type = 0, std::string fromUser = "", std::string toUser = "", std::string content = "");
     const BaseMsg &operator=(const BaseMsg &msg);
 };
 
 struct History : BaseMsg
 {
     std::string timeStamp;
-    History(int type = 0, std::string toUser = "", std::string fromUser = "", std::string content = "", std::string timeStamp = "");
+    History(int type = 0, std::string fromUser = "", std::string toUser = "", std::string content = "", std::string timeStamp = "");
 };
 
 struct Msg : BaseMsg
 {
-    Msg(int type = 0, std::string toUser = "", std::string fromUser = "", std::string content = "");
+    Msg(int type = 0, std::string fromUser = "", std::string toUser = "", std::string content = "");
 
 
     std::string serializer(); //利用jsoncpp库来实现序列化与反序列化 以及实现不定长字符串的发送

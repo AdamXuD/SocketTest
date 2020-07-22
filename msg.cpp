@@ -1,6 +1,6 @@
 #include "msg.h"
 
-BaseMsg::BaseMsg(int type, std::string toUser, std::string fromUser, std::string content)
+BaseMsg::BaseMsg(int type, std::string fromUser, std::string toUser, std::string content)
 {
     this->type = type;
     this->toUser = toUser;
@@ -17,12 +17,12 @@ const BaseMsg &BaseMsg::operator=(const BaseMsg &msg)
     return *this;
 }
 
-History::History(int type, std::string toUser, std::string fromUser, std::string content, std::string timeStamp) : BaseMsg(type, toUser, fromUser, content)
+History::History(int type, std::string fromUser, std::string toUser, std::string content, std::string timeStamp) : BaseMsg(type, fromUser, toUser, content)
 {
     this->timeStamp = timeStamp;
 }
 
-Msg::Msg(int type, std::string toUser, std::string fromUser, std::string content) : BaseMsg(type, toUser, fromUser, content) {}
+Msg::Msg(int type, std::string fromUser, std::string toUser, std::string content) : BaseMsg(type, fromUser, toUser, content) {}
 
 std::string Msg::serializer() //利用jsoncpp库来实现序列化与反序列化 以及实现不定长字符串的发送
 {
