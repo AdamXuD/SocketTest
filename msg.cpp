@@ -51,7 +51,7 @@ void Msg::mapToContent(std::string column[2], std::map<std::string, std::string>
 {
     Json::Value root;
     std::map<std::string, std::string>::iterator it = pMap.begin();
-    for (int i = 0; i < pMap.size(); i++, it++)
+    for (unsigned int i = 0; i < pMap.size(); i++, it++)
     {
         root[i][column[0]] = Json::Value(it->first);
         root[i][column[1]] = Json::Value(it->second);
@@ -66,7 +66,7 @@ void Msg::contentToMap(std::string column[2], std::map<std::string, std::string>
     std::string err;
     Json::Value root;
     Json::parseFromStream(rbuilder, iss, &root, &err);
-    for (int i = 0; i < root.size(); i++)
+    for (unsigned int i = 0; i < root.size(); i++)
     {
         pMap[root[i][column[0]].asString()] = root[i][column[1]].asString();
     }
@@ -76,7 +76,7 @@ void Msg::historyToContent(std::list<History *> &pList)
 {
     Json::Value root;
     std::list<History *>::iterator it = pList.begin();
-    for (int i = 0; i < pList.size(); i++, it++)
+    for (unsigned int i = 0; i < pList.size(); i++, it++)
     {
         root[i]["fromUser"] = Json::Value((*it)->fromUser);
         root[i]["target"] = Json::Value((*it)->toUser);
@@ -93,7 +93,7 @@ void Msg::contentToHistory(std::list<History *> &pList)
     std::string err;
     Json::Value root;
     Json::parseFromStream(rbuilder, iss, &root, &err);
-    for (int i = 0; i < root.size(); i++)
+    for (unsigned int i = 0; i < root.size(); i++)
     {
         History *tmp = new History;
         tmp->fromUser = root[i]["fromUser"].asString();
