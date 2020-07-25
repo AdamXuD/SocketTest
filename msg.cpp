@@ -106,7 +106,7 @@ void Msg::contentToHistory(std::list<History *> &pList)
     }
 }
 
-void Msg::queryToContent(std::list<Query *> &pList)
+void Msg::queryListToContent(std::list<Query *> &pList)
 {
     Json::Value root;
     std::list<Query *>::iterator it = pList.begin();
@@ -121,7 +121,7 @@ void Msg::queryToContent(std::list<Query *> &pList)
     this->content = root.toStyledString();
 }
 
-void Msg::contentToQuery(std::list<Query *> &pList)
+void Msg::contentToQueryList(std::list<Query *> &pList)
 {
     std::istringstream iss(this->content);
     Json::CharReaderBuilder rbuilder;

@@ -53,8 +53,8 @@ struct Msg : BaseMsg
     void historyToContent(std::list<History *> &pList);
     void contentToHistory(std::list<History *> &pList);
 
-    void queryToContent(std::list<Query *> &pList);
-    void contentToQuery(std::list<Query *> &pList);
+    void queryListToContent(std::list<Query *> &pList);
+    void contentToQueryList(std::list<Query *> &pList);
 };
 
 
