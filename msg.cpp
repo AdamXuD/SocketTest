@@ -78,6 +78,7 @@ void Msg::historyToContent(std::list<History *> &pList)
     std::list<History *>::iterator it = pList.begin();
     for (unsigned int i = 0; i < pList.size(); i++, it++)
     {
+        root[i]["type"] = Json::Value((*it)->type);
         root[i]["fromUser"] = Json::Value((*it)->fromUser);
         root[i]["target"] = Json::Value((*it)->toUser);
         root[i]["content"] = Json::Value((*it)->content);
@@ -96,10 +97,45 @@ void Msg::contentToHistory(std::list<History *> &pList)
     for (unsigned int i = 0; i < root.size(); i++)
     {
         History *tmp = new History;
+        tmp->type = root[i]["type"].asInt();
         tmp->fromUser = root[i]["fromUser"].asString();
         tmp->toUser = root[i]["target"].asString();
         tmp->content = root[i]["content"].asString();
         tmp->timeStamp = root[i]["timeStamp"].asString();
+        pList.push_back(tmp);
+    }
+}
+
+void Msg::queryToContent(std::list<Query *> &pList)
+{
+    Json::Value root;
+    std::list<Query *>::iterator it = pList.begin();
+    for (unsigned int i = 0; i < pList.size(); i++, it++)
+    {
+        root[i]["type"] = Json::Value((*it)->type);
+        root[i]["id"] = Json::Value((*it)->id);
+        root[i]["fromUser"] = Json::Value((*it)->fromUser);
+        root[i]["target"] = Json::Value((*it)->toUser);
+        root[i]["content"] = Json::Value((*it)->content);
+    }
+    this->content = root.toStyledString();
+}
+
+void Msg::contentToQuery(std::list<Query *> &pList)
+{
+    std::istringstream iss(this->content);
+    Json::CharReaderBuilder rbuilder;
+    std::string err;
+    Json::Value root;
+    Json::parseFromStream(rbuilder, iss, &root, &err);
+    for (unsigned int i = 0; i < root.size(); i++)
+    {
+        Query *tmp = new Query;
+        tmp->type = root[i]["type"].asInt();
+        tmp->id = root[i]["id"].asInt();
+        tmp->fromUser = root[i]["fromUser"].asString();
+        tmp->toUser = root[i]["target"].asString();
+        tmp->content = root[i]["content"].asString();
         pList.push_back(tmp);
     }
 }
@@ -121,4 +157,34 @@ std::string unPack(std::string packet)
         }
     }
     return Msg().serializer();
+}
+
+Query::Query(int type, int id, std::string fromUser, std::string toUser, std::string content) : BaseMsg(type, fromUser, toUser, content)
+{
+    this->id = id;
+}
+
+std::string Query::serializer() //利用jsoncpp库来实现序列化与反序列化 以及实现不定长字符串的发送
+{
+    Json::Value root;
+    root["type"] = Json::Value(this->type);
+    root["id"] = Json::Value(this->id);
+    root["toUser"] = Json::Value(this->toUser);
+    root["fromUser"] = Json::Value(this->fromUser);
+    root["content"] = Json::Value(this->content);
+    return root.toStyledString();
+}
+
+void Query::parser(std::string jsonString)
+{
+    Json::CharReaderBuilder rbuilder;
+    std::istringstream iss(jsonString);
+    std::string err;
+    Json::Value root;
+    Json::parseFromStream(rbuilder, iss, &root, &err);
+    this->type = root["type"].asInt();
+    this->id = root["id"].asInt();
+    this->toUser = root["toUser"].asString();
+    this->fromUser = root["fromUser"].asString();
+    this->content = root["content"].asString();
 }
